@@ -1,0 +1,89 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{hyperref}
+\setCJKmainfont{微軟正黑體}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[tmargin = 4cm]{geometry}
+\date{}
+\title{\vspace{-3.0cm} Robotics : Assignment 4 \\ \vspace{0.5cm}}
+\author{\textbf{Group 2} : \normalsize{r05922008 丁柏文\mbox{ }r05922084 韓翔宇} \\ \hspace{2.48cm} \normalsize{r05922146 葉興宇\mbox{ }b03902062 董文捷}}
+\begin{document}
+\maketitle
+\begin{enumerate}
+
+\item \textbf{Flowchart} \\
+\includegraphics[scale = 0.48]{flowchart.JPG}
+For coordinate system transformation, there is a linear relationship between x and y coordinate in image and ITRI arm, and z coordinate of object in ITRI arm is fixed. If we place two objects on the table, capture the image to get their coordinates, and measure their coordinates in ITRI arm, we can solve out two equations. Something noticeable is that the direction of x axis and y axis is reversed in ITRI arm and image, that is to say, the equations should be written as $\displaystyle x_{arm} = a_x \times y_{image} + b_x$, $\displaystyle y_{arm} = a_y \times x_{image} + b_y$. In our calculation, we get $\displaystyle a_x = 1.15,\mbox{ }b_x = -465.2,\mbox{ }a_y = -1.24,\mbox{ }b_y = 795.2$, and z coordinate is $-250$,
+$\begin{bmatrix}
+x_{arm} \\
+y_{arm} \\ 
+z_{arm} \\
+\end{bmatrix}$
+=  
+$\begin{bmatrix}
+0 & 1.15 & -465.2 \\
+-1.24 & 0 & 795.2 \\ 
+0 & 0 & -250 \\
+\end{bmatrix}$
+$\times$
+$\begin{bmatrix}
+x_{image} \\
+y_{image} \\ 
+1 \\
+\end{bmatrix}$ \\
+\vspace*{0.6cm} \\
+For every object, these commands are sent to grip the object \\
+\vspace*{-0.4cm} \\
+\texttt{MOVP \textit{x} \textit{y} 100 \textit{angle} 0 180} \\
+\texttt{MOVP \# \# -250 \# \# \#} \\
+\texttt{OUTPUT 48 ON} \\ 
+\vspace*{-0.4cm} \\
+Instead of moving to $z = -250$ directly, the gripper move to $z = 100$ first to avoid hitting objects when approaching the target. \\
+\vspace*{-0.2cm} \\
+If the object is the first object, it will be placed on its original position as the base, the gripper will return to $z = 100$, and corresponding variable \texttt{base\_x}, \texttt{base\_y}, and \texttt{base\_angle} is updated. \\
+\vspace*{-0.4cm} \\
+\texttt{OUTPUT 48 OFF} \\ 
+\texttt{MOVP \# \# 100 \# \# \#} \\
+\texttt{base\_x = x} \\
+\texttt{base\_y = y} \\
+\texttt{base\_angle = angle} \\
+\newpage
+If the object is not the first object, it will be stacked on the base. \\
+\vspace*{-0.4cm} \\
+\texttt{MOVP \# \# \textit{(-300 + 50 * item\_count)} \# \# \#} \\
+\texttt{MOVP \textit{base\_x} \textit{base\_y} \# \textit{base\_angle} \# \#} \\
+\texttt{OUTPUT 48 OFF} \\ 
+\texttt{MOVP \# \# 100 \# \# \#} \\
+\vspace*{-0.4cm} \\
+Since the height of an object is approximately 50, current z coordinate to stack the object can be represented as -300 + 50 $\times$ item\_count. 
+
+\item \textbf{Rotation axes and order for (A, B, C)} \\
+\includegraphics[scale = 0.5]{ABC.JPG} \\
+
+\item \textbf{Technical problems and solutions}
+\begin{enumerate}[(1)]
+
+\item The air pump did not work at the first time we used it. \\
+$\longrightarrow$ We checked the power for the plug, but it was working normally. Fortunately, TA came and found out that some group accidentally pressed the red button on the air pump. 
+
+\item When the gripper tries to grip objects with different angles continuously, it may rotate more than 360 degree, and the pipes will entangle on it. \\
+$\longrightarrow$ We add an \texttt{if} statement in our program. If the principal angle is negative, we add 180.0 on it to let it become positive.  
+
+\item The binary threshold for calculating connected components is not accurate, shapes of some objects are not correct in the binary image, resulting in wrong centroid and principal angle. \\
+$\longrightarrow$ We tried different threshold to find a suitable value, and kept the light condition steady in every test.
+
+\item The image captured by the camera contains the ground outside the table. \\
+$\longrightarrow$ Set some boundaries when calculating connected components to avoid position outside the table.
+
+\end{enumerate}
+
+\item \textbf{The division of work within our team} \\
+Since there is only one computer able to control the ITRI arm, we write our program and discuss our report together in this assignment.
+
+\end{enumerate}
+\end{document}
